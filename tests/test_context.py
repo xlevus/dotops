@@ -21,10 +21,15 @@ def test_get_not_set(context):
         foo = context.does_not_exist
 
 
-def test_set_in_env(context):
+def test_getattr_set_in_env(context):
     os.environ['TEST_SET_IN_ENV'] = 'true'
 
     assert context.set_in_env == 'true'
+
+
+def test_getattr(context):
+    context.test = 'test'
+    assert context.test == 'test'
 
 
 @pytest.mark.parametrize('local,env,expected', [

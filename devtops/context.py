@@ -10,7 +10,8 @@ class Context(object):
 
     def __getattr__(self, name):
         if name in self.context:
-            return self.context['name']
+            return self.context[name]
+
         try:
             return self.get_environ(name)
         except KeyError:
@@ -40,7 +41,6 @@ class Context(object):
     def set_environ(self, name, value):
         environ_key = self.environ_key(name)
         os.environ[environ_key] = value
-
 
 
 context = Context(ENV_PREFIX)
