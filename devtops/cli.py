@@ -3,7 +3,7 @@ import argparse
 import os
 import pathlib
 
-from .runner import run_module
+from .exec import exec_module
 from .context import context
 
 
