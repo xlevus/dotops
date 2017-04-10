@@ -1,22 +1,24 @@
 import os
 import sys
 import json
+import logging
 import subprocess
 
-from pathlib import PurePath
-from typing import Iterable, Mapping, Any
+from typing import Mapping, Any
 
-from ..context import context
 from ..utils import import_string
+from ..cli import set_log_level
 
+
+logger = logging.getLogger(__name__)
 
 T_Data = Mapping[str, Any]
 
 
 MODULE_ALIASES = {
-    'apply': 'devtops.modules.apply.Apply',
-    'zypper': 'devtops.modules.packages.Zypper',
-    'pip': 'devtops.modules.pip.Pip',
+    'apply': 'dotops.modules.apply.Apply',
+    'zypper': 'dotops.modules.packages.Zypper',
+    'pip': 'dotops.modules.pip.Pip',
 }
 
 
@@ -30,20 +32,24 @@ def resolve_alias(module: str) -> str:
     return module
 
 
-def exec_module(module: str, data: T_Data):
+def exec_module(module: str, data: T_Data) -> None:
     module = resolve_alias(module)
 
     try:
         import_string(module)
-        return exec_python(module, data)
+        exec_python(module, data)
     except ImportError:
-        return exec_external(module, data)
+        exec_external(module, data)
 
 
-def exec_python(module: str, data: T_Data):
+def exec_python(module: str, data: T_Data) -> None:
+    """
+    Executes python module in a subprocess.
+    """
     cmd = [
         sys.executable,
-        __file__,
+        '-m',
+        __name__,
         module,
         json.dumps(data)
     ]
@@ -51,19 +57,23 @@ def exec_python(module: str, data: T_Data):
     run.check_returncode()
 
 
-def exec_external(module: str, data: T_Data):
+def exec_external(module: str, data: T_Data) -> None:
+    # TODO: Implement 'external' modules.
+    # Unsure of what naming convention they should follow.
+    # `my.module.dotop` ?
     raise NotImplementedError()
 
 
 if __name__ == '__main__':
-    try:
-        module = sys.argv[1]
-        data = json.loads(sys.argv[2])
+    set_log_level()
 
-        klass = import_string(module)
-        inst = klass()
+    module = sys.argv[1]
+    data = json.loads(sys.argv[2])
 
-        inst.main(**data)
-        exit(0)
-    except Exception as e:
-        exit(1)
+    klass = import_string(module)
+    inst = klass()
+
+    logger.debug("Executing '{}' in '{}'".format(
+        module, os.getcwd()))
+
+    inst.main(**data)
