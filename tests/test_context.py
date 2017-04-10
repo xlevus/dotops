@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from devtops.context import Context
+from dotops.context import Context
 
 
 @pytest.fixture
