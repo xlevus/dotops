@@ -26,5 +26,4 @@ def main():
 
 
 if __name__ == '__main__':
-    from dotops.cli import cli
-    cli()
+    main()
