@@ -8,6 +8,7 @@ from typing import Optional, Iterable
 logger = logging.getLogger(__name__)
 
 
+# Pinched from werkzeug.utils.import_string
 def import_string(import_name):
     """Imports an object based on a string.  This is useful if you want to
     use import paths as endpoints or something similar.  An import path can
