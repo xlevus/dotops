@@ -61,6 +61,12 @@ def load_playbook(root: Path) -> None:
         raise
 
 
-def exec_playbooks(playbooks: Iterable[Path]):
+def load_playbooks(playbooks: Iterable[Path]):
     for root in playbooks:
         load_playbook(root)
+
+
+def exec_loaded():
+    for playbook_path in Playbook.ALL:
+        playbook = Playbook.ALL[playbook_path]
+        playbook.execute()

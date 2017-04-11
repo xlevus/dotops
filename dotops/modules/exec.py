@@ -3,8 +3,9 @@ import sys
 import json
 import logging
 import subprocess
+from typing import Iterable, Mapping, Any
 
-from typing import Mapping, Any
+from colours import colour
 
 from ..utils import import_string
 from ..cli import set_log_level
@@ -17,7 +18,7 @@ T_Data = Mapping[str, Any]
 
 MODULE_ALIASES = {
     'apply': 'dotops.modules.apply.Apply',
-    'zypper': 'dotops.modules.packages.Zypper',
+    'zypper': 'dotops.modules.zypper.Zypper',
     'pip': 'dotops.modules.pip.Pip',
 }
 
@@ -26,42 +27,53 @@ class ModuleNotFound(RuntimeError):
     pass
 
 
-def resolve_alias(module: str) -> str:
-    if module in MODULE_ALIASES:
-        return MODULE_ALIASES[module]
-    return module
+class Module(object):
+    def __init__(self, name: str):
+        self.name = name
+        self.root_command = self._load()
 
+    def __repr__(self):
+        return "<Module: {}>".format(self.name)
 
-def exec_module(module: str, data: T_Data) -> None:
-    module = resolve_alias(module)
+    @classmethod
+    def resolve_alias(cls, module: str) -> str:
+        if module in MODULE_ALIASES:
+            return MODULE_ALIASES[module]
+        return module
 
-    try:
-        import_string(module)
-        exec_python(module, data)
-    except ImportError:
-        exec_external(module, data)
+    def _load(self) -> Iterable[str]:
+        module = self.resolve_alias(self.name)
 
+        try:
+            import_string(module)
+            return [sys.executable,
+                    '-m',
+                    __name__,
+                    module]
+        except ImportError:
+            # External modules not implemented.
+            pass
 
-def exec_python(module: str, data: T_Data) -> None:
-    """
-    Executes python module in a subprocess.
-    """
-    cmd = [
-        sys.executable,
-        '-m',
-        __name__,
-        module,
-        json.dumps(data)
-    ]
-    run = subprocess.run(cmd)
-    run.check_returncode()
+        raise ModuleNotFound("Unable to find module '{}'.".format(self.name))
 
+    def exec(self, data, capture=False) -> None:
 
-def exec_external(module: str, data: T_Data) -> None:
-    # TODO: Implement 'external' modules.
-    # Unsure of what naming convention they should follow.
-    # `my.module.dotop` ?
-    raise NotImplementedError()
+        cmd = self.root_command + [
+            json.dumps(data)
+        ]
+        logger.info("Running: {}".format(" ".join(cmd)))
+
+        pipe = subprocess.PIPE if capture else None
+        subprocess.run(cmd, check=True, stdout=pipe, stderr=pipe)
+
+    def exec_pretty(self, data, capture=True):
+        print(colour.blue("{}: {}".format(self.name, data)))
+
+        try:
+            self.exec(data, capture)
+        except subprocess.CalledProcessError as e:
+            print(colour.red("{} Failed\n".format(self.name)))
+            print(colour.red(e.stderr.decode('utf-8')))
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@
 
 class Pip(object):
 
-    def main(self, packages, system, state):
+    def main(self, *, packages, user=True, state='present', version=3):
         import pip
 
         cmd = []
@@ -10,7 +10,7 @@ class Pip(object):
         if state == 'present':
             cmd.append('install')
 
-            if not system:
+            if not user:
                 cmd.append('--user')
         else:
             cmd.append('uninstall')

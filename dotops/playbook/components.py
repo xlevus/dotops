@@ -1,9 +1,20 @@
+import os
+import logging
+
 from pathlib import Path
 from functools import partial
+from subprocess import CalledProcessError
+from collections import OrderedDict
+
+from colours import colour
+
+from ..modules.exec import Module
+
+logger = logging.getLogger(__name__)
 
 
 class Playbook(object):
-    ALL = {}
+    ALL = OrderedDict()
 
     @classmethod
     def constructor(cls, root: Path):
@@ -38,10 +49,21 @@ class Playbook(object):
             self,
             self.tasks)
 
+    def execute(self):
+        logger.debug("Executing playbook {}".format(self))
+        orig_wd = Path.cwd()
+        logger.info("Changing directory to: {}".format(self.root))
+        os.chdir(self.root)
+
+        for task in self.tasks:
+            task.execute()
+
+        os.chdir(orig_wd)
+
 
 class Task(object):
     def __init__(self, module: str, *options, **data):
-        self.module = module
+        self.module = Module(module)
         self.data = data
 
         self.options = {
@@ -54,3 +76,6 @@ class Task(object):
 
     def __repr__(self):
         return "<{}: {}>".format(self.module, self.data)
+
+    def execute(self):
+        self.module.exec_pretty(self.data)
