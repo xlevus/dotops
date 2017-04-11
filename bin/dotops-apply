@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 
 from dotops.cli import set_log_level
-from dotops.playbook.exec import exec_playbook
+from dotops.playbook.exec import exec_playbooks
 
 logger = logging.getLogger(__name__)
 
@@ -18,5 +18,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    for playbook in args.playbooks:
-        exec_playbook(playbook)
+    exec_playbooks(args.playbooks)
