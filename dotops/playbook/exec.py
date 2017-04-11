@@ -61,27 +61,6 @@ def load_playbook(root: Path) -> None:
         raise
 
 
-def exec_playbook(path):
-    path = path.resolve()
-
-    orig_path = Path.cwd()
-    os.chdir(path)
-
-    playbook = path / 'playbook.hy'
-    if not playbook.exists():
-        raise PlaybookNotFound("Unable to find playbook in '{}'.".format(
-            playbook))
-
-    try:
-        logger.debug("Executing playbook in '{}'.".format(path))
-
-        module = load_playbook(playbook)
-        _exec(module)
-
-    finally:
-        os.chdir(orig_path)
-
-
 def exec_playbooks(playbooks: Iterable[Path]):
     for root in playbooks:
         load_playbook(root)

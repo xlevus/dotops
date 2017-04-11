@@ -7,6 +7,15 @@ class Playbook(object):
 
     @classmethod
     def constructor(cls, root: Path):
+        """
+        The `Playbook` will require an identifier. The user could
+        pass this into the object, but that's not really ideal.
+
+        Instead, we'll pass the curried constructor with the path
+        of the playbook as `playbook` into the lisp-globals.
+
+        Also means, no macros.
+        """
         return partial(cls, root)
 
     def __init__(self, root: Path, *tasks):
@@ -16,7 +25,10 @@ class Playbook(object):
         if root in self.ALL:
             raise RuntimeError('Only one playbook per file.')
 
-        self.PLAYBOOKS[root] = self
+        # Record a record of the playbook. This saves us writing macros to
+        # populate the modules global namespace with something we can look for
+        # again later.
+        self.ALL[root] = self
 
     def __str__(self):
         return str(self.root)
@@ -28,9 +40,17 @@ class Playbook(object):
 
 
 class Task(object):
-    def __init__(self, module: str, **data):
+    def __init__(self, module: str, *options, **data):
         self.module = module
         self.data = data
+
+        self.options = {
+            'name': None,
+            'depends': [],
+        }
+
+        if len(options) == 1:
+            self.options.update(options[0])
 
     def __repr__(self):
         return "<{}: {}>".format(self.module, self.data)
