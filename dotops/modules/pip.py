@@ -1,20 +1,25 @@
+from plumbum import local
 
 
 class Pip(object):
+    state_map = {
+        'present': 'install',
+        'absent': 'uninstall -y',
+        'latest': 'install -U',
+        'reinstall': 'install -I'
+    }
+
+    def get_pip(self, version):
+        return local['pip' + str(version), '--isolated']
 
     def main(self, *, packages, user=True, state='present', version=3):
-        import pip
+        pip = self.get_pip(version)
 
-        cmd = []
+        pip = pip[self.state_map[state]]
 
-        if state == 'present':
-            cmd.append('install')
+        if user:
+            pip = pip['--user']
 
-            if not user:
-                cmd.append('--user')
-        else:
-            cmd.append('uninstall')
+        pip = pip[packages]
 
-        cmd.extend(packages)
-
-        return pip.main(cmd)
+        pip()

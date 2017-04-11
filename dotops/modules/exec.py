@@ -5,9 +5,9 @@ import logging
 import subprocess
 from typing import Iterable, Mapping, Any
 
-from colours import colour
+from plumbum import colors as colour
 
-from ..utils import import_string
+from ..utils import import_string, indent_string
 from ..cli import set_log_level
 
 
@@ -67,13 +67,20 @@ class Module(object):
         subprocess.run(cmd, check=True, stdout=pipe, stderr=pipe)
 
     def exec_pretty(self, data, capture=True):
-        print(colour.blue("{}: {}".format(self.name, data)))
+        print(colour.blue | "{}: {}".format(self.name, data), end=" ")
 
         try:
             self.exec(data, capture)
         except subprocess.CalledProcessError as e:
-            print(colour.red("{} Failed\n".format(self.name)))
-            print(colour.red(e.stderr.decode('utf-8')))
+            print(colour.red | colour.bold | "ERROR")
+
+            if capture:
+                stderr = indent_string(
+                    e.stderr.decode('utf-8'),
+                    indent='E: ')
+                print(colour.red | stderr)
+        else:
+            print(colour.green | colour.bold | "OK")
 
 
 if __name__ == '__main__':

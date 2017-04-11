@@ -1,12 +1,10 @@
-import os
 import logging
 
 from pathlib import Path
 from functools import partial
-from subprocess import CalledProcessError
 from collections import OrderedDict
 
-from colours import colour
+from plumbum import local
 
 from ..modules.exec import Module
 
@@ -51,14 +49,18 @@ class Playbook(object):
 
     def execute(self):
         logger.debug("Executing playbook {}".format(self))
-        orig_wd = Path.cwd()
-        logger.info("Changing directory to: {}".format(self.root))
-        os.chdir(self.root)
 
-        for task in self.tasks:
-            task.execute()
+        with local.cwd(self.root):
+            for i, task in enumerate(self.tasks):
 
-        os.chdir(orig_wd)
+                # Filter out 'tasks' that are None.
+                # This should allow you to write playbooks that wrap tasks
+                # with (if x (task ...)) easily.
+                if task is None:
+                    logger.debug("Skipping task #{} as it is None".format(i))
+                    continue
+
+                task.execute()
 
 
 class Task(object):

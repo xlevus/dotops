@@ -1,4 +1,11 @@
+import os
 import sys
+import logging
+from itertools import chain
+from pathlib import Path
+from typing import Optional, Iterable
+
+logger = logging.getLogger(__name__)
 
 
 def import_string(import_name):
@@ -37,3 +44,41 @@ def import_string(import_name):
         return getattr(module, obj_name)
     except AttributeError as e:
         raise ImportError(e)
+
+
+def indent_string(string: str, indent="\t"):
+    lines = string.splitlines()
+    joiner = "\n" + indent
+    return indent + joiner.join(lines)
+
+
+def path_is_executable(path: Path) -> bool:
+    if not path.exists():
+        logger.debug("{} does not exist".format(path))
+        return False
+
+    if not os.access(path, os.X_OK):
+        logger.warn("{} is not +x".format(path))
+        return False
+
+    return True
+
+
+def find_executable(*names: str,
+                    additional_roots: Iterable[Path] = (),
+                    additional_files: Iterable[Path] = ())-> Optional[Path]:
+    """Finds an executable on $PATH matching one of `names`.
+
+    Also searches any files in `additional_roots`, and any `additional_files`.
+    """
+    for path in additional_files:
+        if path_is_executable(path):
+            return path
+
+    for root in chain(additional_roots, os.get_exec_path()):
+        root = Path(root)
+        for name in names:
+            path = root / name
+            if path_is_executable(path):
+                return path
+    return None

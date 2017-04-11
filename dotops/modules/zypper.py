@@ -1,6 +1,8 @@
+import sys
 
 
 class Zypper(object):
 
     def main(self, **kwargs):
-        pass
+        print("Not Implemented", file=sys.stderr)
+        exit(1)
