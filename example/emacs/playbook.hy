@@ -2,6 +2,6 @@
 
 (playbook
  (task "zypper"
-       :packages ["vim"]
+       :packages ["emacs"]
        :state "present"))
 
