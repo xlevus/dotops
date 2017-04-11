@@ -4,4 +4,3 @@
  (task "zypper"
        :packages ["vim"]
        :state "present"))
-
