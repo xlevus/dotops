@@ -8,20 +8,21 @@ from plumbum import local
 
 from ..modules.exec import Module
 
+
 logger = logging.getLogger(__name__)
 
 
-class Playbook(object):
+class Recipe(object):
     ALL = OrderedDict()
 
     @classmethod
     def constructor(cls, root: Path):
         """
-        The `Playbook` will require an identifier. The user could
+        The `Recipe` will require an identifier. The user could
         pass this into the object, but that's not really ideal.
 
         Instead, we'll pass the curried constructor with the path
-        of the playbook as `playbook` into the lisp-globals.
+        of the recipe as `recipe` into the lisp-globals.
 
         Also means, no macros.
         """
@@ -32,9 +33,9 @@ class Playbook(object):
         self.tasks = tasks
 
         if root in self.ALL:
-            raise RuntimeError('Only one playbook per file.')
+            raise RuntimeError('Only one recipe per file.')
 
-        # Record a record of the playbook. This saves us writing macros to
+        # Record a record of the recipe. This saves us writing macros to
         # populate the modules global namespace with something we can look for
         # again later.
         self.ALL[root] = self
@@ -48,13 +49,13 @@ class Playbook(object):
             self.tasks)
 
     def execute(self):
-        logger.debug("Executing playbook {}".format(self))
+        logger.debug("Executing recipe {}".format(self))
 
         with local.cwd(self.root):
             for i, task in enumerate(self.tasks):
 
                 # Filter out 'tasks' that are None.
-                # This should allow you to write playbooks that wrap tasks
+                # This should allow you to write recipes that wrap tasks
                 # with (if x (task ...)) easily.
                 if task is None:
                     logger.debug("Skipping task #{} as it is None".format(i))

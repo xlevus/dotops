@@ -1,8 +1,8 @@
-; Example playbook.
+; Example recipe.
 
 (setv pip-packages ["pylint" "flake8" "jedi"])
 
-(playbook
+(recipe
 
  (if False
    (task "Fake"

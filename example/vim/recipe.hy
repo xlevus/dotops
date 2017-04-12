@@ -1,6 +1,6 @@
-; Example playbook.
+; Example recipe.
 
-(playbook
+(recipe
  (task "zypper"
        :packages ["vim"]
        :state "present"))
