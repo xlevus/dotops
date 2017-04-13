@@ -1,17 +1,13 @@
-#!/usr/bin/env python3
-
 import argparse
 
-from dotops.context import context
 from dotops.cli import set_log_level
+from dotops.context import context
 from dotops.commands.exec import run_command
 
 
 parser = argparse.ArgumentParser()
-
 parser.add_argument('--root', metavar='PATH', default='~/.dotops')
 parser.add_argument('--logging', metavar='LEVEL', default=None)
-
 parser.add_argument('command', nargs='?', default='help')
 parser.add_argument('args', nargs=argparse.REMAINDER)
 
@@ -23,7 +19,3 @@ def main():
     set_log_level(args.logging)
 
     run_command(args.command, cli_args=args.args)
-
-
-if __name__ == '__main__':
-    main()

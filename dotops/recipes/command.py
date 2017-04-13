@@ -17,7 +17,7 @@ parser.add_argument('--no-capture', dest='capture_subprocess',
 parser.add_argument('recipes', nargs='+', type=Path)
 
 
-if __name__ == '__main__':
+def apply():
     set_log_level()
 
     args = parser.parse_args()

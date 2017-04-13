@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import json
 
@@ -21,7 +19,3 @@ def main():
     data = json.loads(args.data)
 
     module.exec_pretty(data)
-
-
-if __name__ == '__main__':
-    main()

@@ -8,7 +8,6 @@ from typing import Iterable, Mapping, Any
 from plumbum import colors as colour
 
 from ..utils import import_string, indent_string
-from ..cli import set_log_level
 from ..context import context
 
 
@@ -56,7 +55,7 @@ class Module(object):
             import_string(module)
             return [sys.executable,
                     '-m',
-                    __name__,
+                    'dotops.modules._runner',
                     module]
         except ImportError:
             # External modules not implemented.
@@ -105,20 +104,3 @@ class Module(object):
             raise ModuleExecFailed(self.name, data)
         else:
             print(colour.green | colour.bold | "OK")
-
-
-if __name__ == '__main__':
-    from ..error_handler import error_handler
-    set_log_level()
-
-    with error_handler:
-        module = sys.argv[1]
-        data = json.loads(sys.argv[2])
-
-        klass = import_string(module)
-        inst = klass()
-
-        logger.debug("Executing '{}' in '{}'".format(
-            module, os.getcwd()))
-
-        inst.main(**data)
