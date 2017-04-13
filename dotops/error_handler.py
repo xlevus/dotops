@@ -42,8 +42,10 @@ error_handler = ErrorHandler()
 
 @error_handler.handler(CommandNotFound)
 def _command_not_found(e):
-    print(colour.red | "Could not find the command '{}'.".format(e.program[0]),
+    command = " ".join(e.program[0])
+    print(colour.red | "Could not find the command '{}'.".format(command),
           file=sys.stderr)
+    print(colour.yellow | "Searched paths: {}".format(",".join(e.path)))
     exit(127)
 
 

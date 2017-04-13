@@ -10,11 +10,11 @@ class Pip(object):
     }
 
     def get_pip(self, version):
-        return local['pip' + str(version), '--isolated']
+        return local['pip' + str(version)]
 
     def main(self, *, packages, user=True, state='present', version=3):
         pip = self.get_pip(version)
-
+        pip = pip['--isolated']
         pip = pip[self.state_map[state]]
 
         if user:
