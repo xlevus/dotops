@@ -24,8 +24,8 @@ Goals
   they don't need it.
 * self-documenting. Users should be able to determine recipe parameters from
   just using the application.
-  
-  
+ 
+ 
 Installing
 ----------
 ```
@@ -86,3 +86,15 @@ Undecided Implementation Details
   * Have modules take arguments in a defined format (`--package a --package b --user`)
 * Should modules provide a `--check` and `--apply` interface?
   * Can this be used to detect if `sudo` is needed?
+* What is needed to implement recipe-generation? e.g. Running:
+  ```
+  dotops autorecipe my-recipe pip '{"packages": ["my-package"]}''
+  dotops autorecipe my-recipe systemd '{"unit": "my.service", "user": True}'
+  dotops autorecipe my-recipe pip '{"packages": ["something-else"]}''
+  ```
+  installs packages, starts the service, and creates:
+  ```
+  (recipe
+    (task "pip" :packages ['my-package' 'something-else'])
+    (task "systemd" :unit "my.service" :user True))
+  ```
