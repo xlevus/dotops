@@ -1,6 +1,6 @@
 import os
 
-ENV_PREFIX = 'DEVTOP_'
+ENV_PREFIX = 'DOTOPS_'
 
 
 class Context(object):
@@ -36,11 +36,14 @@ class Context(object):
 
     def get_environ(self, name):
         environ_key = self.environ_key(name)
-        return os.environ[environ_key]
+        value = os.environ[environ_key]
+
+        if value in ('True', 'False'):
+            return value == 'True'
 
     def set_environ(self, name, value):
         environ_key = self.environ_key(name)
-        os.environ[environ_key] = value
+        os.environ[environ_key] = str(value)
 
 
 context = Context(ENV_PREFIX)

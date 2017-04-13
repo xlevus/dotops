@@ -33,5 +33,7 @@ def run_command(command: str, cli_args: Iterable[str]) -> None:
         find_command(command),
     ] + cli_args
 
-    run = subprocess.run(cmd)
-    run.check_returncode()
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as e:
+        exit(e.returncode)

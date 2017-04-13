@@ -9,6 +9,7 @@ from plumbum import colors as colour
 
 from ..utils import import_string, indent_string
 from ..cli import set_log_level
+from ..context import context
 
 
 logger = logging.getLogger(__name__)
@@ -23,8 +24,15 @@ MODULE_ALIASES = {
 }
 
 
-class ModuleNotFound(RuntimeError):
-    pass
+class ModuleNotFound(Exception):
+    def __init__(self, module):
+        self.module = module
+
+
+class ModuleExecFailed(Exception):
+    def __init__(self, module, data):
+        self.module = module
+        self.data = data
 
 
 class Module(object):
@@ -54,10 +62,9 @@ class Module(object):
             # External modules not implemented.
             pass
 
-        raise ModuleNotFound("Unable to find module '{}'.".format(self.name))
+        raise ModuleNotFound(self.name)
 
     def exec(self, data, capture=False) -> None:
-
         cmd = self.root_command + [
             json.dumps(data)
         ]
@@ -66,8 +73,16 @@ class Module(object):
         pipe = subprocess.PIPE if capture else None
         subprocess.run(cmd, check=True, stdout=pipe, stderr=pipe)
 
-    def exec_pretty(self, data, capture=True):
-        print(colour.blue | "{}: {}".format(self.name, data), end=" ")
+    def exec_pretty(self, data, capture=None):
+        capture = capture or context.get('capture_output', True)
+
+        print(colour.blue | "{}: {}".format(self.name, data),
+              end=" " if capture else None)
+
+        if not capture:
+            # Flush output, so failed command's stdout comes below
+            # our status line.
+            sys.stdout.flush()
 
         try:
             self.exec(data, capture)
@@ -75,24 +90,35 @@ class Module(object):
             print(colour.red | colour.bold | "ERROR")
 
             if capture:
-                stderr = indent_string(
-                    e.stderr.decode('utf-8'),
-                    indent='E: ')
-                print(colour.red | stderr)
+                if e.stdout:
+                    stdout = indent_string(
+                        e.stdout.decode('utf-8'),
+                        indent='O: ')
+                    print(colour.yellow | stdout)
+
+                if e.stderr:
+                    stderr = indent_string(
+                        e.stderr.decode('utf-8'),
+                        indent='E: ')
+                    print(colour.red | stderr)
+
+            raise ModuleExecFailed(self.name, data)
         else:
             print(colour.green | colour.bold | "OK")
 
 
 if __name__ == '__main__':
+    from ..error_handler import error_handler
     set_log_level()
 
-    module = sys.argv[1]
-    data = json.loads(sys.argv[2])
+    with error_handler:
+        module = sys.argv[1]
+        data = json.loads(sys.argv[2])
 
-    klass = import_string(module)
-    inst = klass()
+        klass = import_string(module)
+        inst = klass()
 
-    logger.debug("Executing '{}' in '{}'".format(
-        module, os.getcwd()))
+        logger.debug("Executing '{}' in '{}'".format(
+            module, os.getcwd()))
 
-    inst.main(**data)
+        inst.main(**data)

@@ -11,6 +11,7 @@ from hy.compiler import HyTypeError
 from hy.lex import LexException
 
 from .components import Recipe, Task
+from ..context import context
 
 
 logger = logging.getLogger(__name__)
